@@ -1,0 +1,8 @@
+/build/
+.idea/
+*.iml
+*.mwb.bak
+/velocity.log
+target
+out
+.java-version
