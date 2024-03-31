@@ -5,20 +5,20 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.3</version>
+        <version>3.2.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.github.pozo</groupId>
-    <artifactId>bamosz</artifactId>
+    <artifactId>investmentfunds</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>bamosz</name>
-    <description>bamosz api</description>
+    <name>investmentfunds</name>
+    <description>investmentfunds api</description>
 
     <modules>
         <module>grabber</module>
         <module>api</module>
-        <module>dto</module>
+        <module>domain</module>
     </modules>
 
     <properties>
