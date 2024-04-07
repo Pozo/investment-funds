@@ -27,7 +27,7 @@ class InvestmentFundsRoutes : RouteBuilder() {
     private val executorService: ExecutorService = Executors.newFixedThreadPool(20)
 
     override fun configure() {
-        from("file:///Users/zoltanpolgar/workspace/private/bamosz/isin-list")
+        from("file:///Users/zoltanpolgar/workspace/private/investmentfunds/isin-list")
             .split().tokenize("\n", 10)
             .parallelProcessing()
             .convertBodyTo(String::class.java, "UTF-8")
