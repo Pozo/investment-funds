@@ -2,7 +2,6 @@ package com.github.pozo.investmentfunds.api.rates
 
 import com.github.pozo.investmentfunds.RedisHashKey
 import com.github.pozo.investmentfunds.api.redis.RedisService
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service

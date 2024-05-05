@@ -1,11 +1,9 @@
 package com.github.pozo.investmentfunds.grabber.processors
 
 import com.github.pozo.investmentfunds.FundHeaders
-import com.github.pozo.investmentfunds.grabber.InvestmentFunds
-import com.github.pozo.investmentfunds.grabber.InvestmentFundsRoutes.Companion.DATA_ROUTE_NAME
-import com.github.pozo.investmentfunds.grabber.InvestmentFundsRoutes.Companion.ISIN_HEADER_NAME
-import com.github.pozo.investmentfunds.grabber.InvestmentFundsRoutes.Companion.META_ROUTE_NAME
-import com.github.pozo.investmentfunds.grabber.processors.CsvSplitter.DataRow
+import com.github.pozo.investmentfunds.grabber.InvestmentFundsRoutes.Companion.FUND_DATA_ROUTE_NAME
+import com.github.pozo.investmentfunds.grabber.InvestmentFundsRoutes.Companion.RATE_DATA_ROUTE_NAME
+import com.github.pozo.investmentfunds.grabber.processors.CsvProcessor.DataRow
 import org.apache.camel.Exchange
 import java.util.stream.Collectors
 import java.util.stream.IntStream
@@ -13,9 +11,16 @@ import java.util.stream.IntStream
 typealias VerticalPiece = MutableList<DataRow>
 typealias CSVLine = List<String>
 
-object CsvSplitter {
+object CsvProcessor {
 
-    data class DataRow(val headerColumn: String, val dataColumns: List<String>)
+    const val ISIN_HEADER_NAME = "isin"
+
+    private const val DATE_FIELD_NAME = "Dátum"
+
+    data class DataRow(
+        val headerColumn: String,
+        val dataColumns: List<String>
+    )
 
     fun splitVertically(): (exchange: Exchange) -> Unit = { exchange ->
         val csvLinesWithMetaRow: List<CSVLine> = exchange.getIn().getBody(List::class.java) as List<CSVLine>
@@ -54,7 +59,7 @@ object CsvSplitter {
 
         var rateDataSection = false
         for (row in csvRows) {
-            if (row.headerColumn == InvestmentFunds.DATE_FIELD_NAME) {
+            if (row.headerColumn == DATE_FIELD_NAME) {
                 rateDataSection = true
                 rateHeaders.add(row.headerColumn)
                 rateHeaders.addAll(row.dataColumns)
@@ -74,14 +79,14 @@ object CsvSplitter {
 
         exchange.context.createProducerTemplate()
             .sendBodyAndHeader(
-                META_ROUTE_NAME,
+                FUND_DATA_ROUTE_NAME,
                 Pair(fundHeaders, fundData),
                 ISIN_HEADER_NAME,
                 sanitizedIsin
             )
         exchange.context.createProducerTemplate()
             .sendBodyAndHeader(
-                DATA_ROUTE_NAME,
+                RATE_DATA_ROUTE_NAME,
                 Pair(rateHeaders, rateData),
                 ISIN_HEADER_NAME,
                 sanitizedIsin

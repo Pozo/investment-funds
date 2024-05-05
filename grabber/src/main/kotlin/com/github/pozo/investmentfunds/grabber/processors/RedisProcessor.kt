@@ -3,19 +3,21 @@ package com.github.pozo.investmentfunds.grabber.processors
 import com.github.pozo.investmentfunds.FundHeaders
 import com.github.pozo.investmentfunds.RateHeaders
 import com.github.pozo.investmentfunds.RedisHashKey
-import com.github.pozo.investmentfunds.grabber.InvestmentFunds
-import com.github.pozo.investmentfunds.grabber.InvestmentFundsRoutes
+import com.github.pozo.investmentfunds.grabber.processors.CsvProcessor.ISIN_HEADER_NAME
+import com.github.pozo.investmentfunds.grabber.processors.ISINProcessor.START_YEAR
 import org.apache.camel.Exchange
 import redis.clients.jedis.JedisPooled
 
-object Redis {
+object RedisProcessor {
+
+    private const val DATE_FORMAT = "yyyy/MM/dd"
 
     private val jedis = JedisPooled("localhost", 6379)
 
-    fun saveMeta(): (exchange: Exchange) -> Unit = { exchange ->
+    fun saveFundData(): (exchange: Exchange) -> Unit = { exchange ->
         val body = exchange.getIn().getBody(Pair::class.java) as Pair<List<String>, List<String>>
 
-        val isin = exchange.message.getHeader(InvestmentFundsRoutes.ISIN_HEADER_NAME, String::class.java)
+        val isin = exchange.message.getHeader(ISIN_HEADER_NAME, String::class.java)
         val header = body.first
         val data = body.second
 
@@ -26,10 +28,10 @@ object Redis {
         jedis.hset("fund#$isin", keyValuePairs)
     }
 
-    fun saveData(): (exchange: Exchange) -> Unit = { exchange ->
+    fun saveRateData(): (exchange: Exchange) -> Unit = { exchange ->
         val body = exchange.`in`.getBody(Pair::class.java) as Pair<List<String>, List<List<String>>>
 
-        val isin = exchange.message.getHeader(InvestmentFundsRoutes.ISIN_HEADER_NAME, String::class.java)
+        val isin = exchange.message.getHeader(ISIN_HEADER_NAME, String::class.java)
         val header = body.first
         val data = body.second
 
@@ -47,8 +49,8 @@ object Redis {
                     pipeline.zadd(
                         "rate:keys#$isin",
                         RedisHashKey.calculateScore(
-                            InvestmentFunds.DATE_FORMAT,
-                            InvestmentFunds.START_YEAR,
+                            DATE_FORMAT,
+                            START_YEAR,
                             entry[header.indexOf(RateHeaders.DATE.field)]
                         ),
                         rateKey
