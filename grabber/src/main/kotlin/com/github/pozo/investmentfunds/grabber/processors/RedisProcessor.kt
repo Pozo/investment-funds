@@ -2,9 +2,10 @@ package com.github.pozo.investmentfunds.grabber.processors
 
 import com.github.pozo.investmentfunds.FundHeaders
 import com.github.pozo.investmentfunds.RateHeaders
+import com.github.pozo.investmentfunds.DataFlowConstants
 import com.github.pozo.investmentfunds.RedisHashKey
 import com.github.pozo.investmentfunds.grabber.processors.CsvProcessor.ISIN_HEADER_NAME
-import com.github.pozo.investmentfunds.grabber.processors.ISINProcessor.START_YEAR
+import com.github.pozo.investmentfunds.grabber.processors.ISINProcessor.END_DATE_HEADER_NAME
 import org.apache.camel.Exchange
 import redis.clients.jedis.JedisPooled
 
@@ -13,6 +14,11 @@ object RedisProcessor {
     private const val DATE_FORMAT = "yyyy/MM/dd"
 
     private val jedis = JedisPooled("localhost", 6379)
+
+    fun saveMetaData(): (exchange: Exchange) -> Unit = { exchange ->
+        val periodEnd = exchange.message.getHeader(END_DATE_HEADER_NAME, String::class.java)
+        jedis.set(DataFlowConstants.GRAB_DATA_LATEST_DATE_KEY.field, periodEnd)
+    }
 
     fun saveFundData(): (exchange: Exchange) -> Unit = { exchange ->
         val body = exchange.getIn().getBody(Pair::class.java) as Pair<List<String>, List<String>>
@@ -50,7 +56,7 @@ object RedisProcessor {
                         "rate:keys#$isin",
                         RedisHashKey.calculateScore(
                             DATE_FORMAT,
-                            START_YEAR,
+                            DataFlowConstants.START_YEAR.field.toInt(),
                             entry[header.indexOf(RateHeaders.DATE.field)]
                         ),
                         rateKey

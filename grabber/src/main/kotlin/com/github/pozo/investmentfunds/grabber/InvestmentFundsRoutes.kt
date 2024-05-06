@@ -1,5 +1,6 @@
 package com.github.pozo.investmentfunds.grabber
 
+import com.github.pozo.investmentfunds.DataFlowConstants
 import com.github.pozo.investmentfunds.grabber.processors.CsvProcessor
 import com.github.pozo.investmentfunds.grabber.processors.CsvProcessor.ISIN_HEADER_NAME
 import com.github.pozo.investmentfunds.grabber.processors.ISINProcessor
@@ -7,8 +8,10 @@ import com.github.pozo.investmentfunds.grabber.processors.ISINProcessor.END_DATE
 import com.github.pozo.investmentfunds.grabber.processors.ISINProcessor.ISIN_LIST_HEADER_NAME
 import com.github.pozo.investmentfunds.grabber.processors.ISINProcessor.START_DATE_HEADER_NAME
 import com.github.pozo.investmentfunds.grabber.processors.RedisProcessor
+
 import org.apache.camel.LoggingLevel
 import org.apache.camel.builder.RouteBuilder
+
 import org.apache.camel.dataformat.csv.CsvDataFormat
 import org.springframework.data.redis.serializer.StringRedisSerializer
 import java.util.*
@@ -22,22 +25,19 @@ class InvestmentFundsRoutes : RouteBuilder() {
 
     override fun configure() {
         val isinGroupSize: Int = resolveProperty("processors.isin-group-size") { it.toInt() }.orElseThrow()
-        val threadPoolSize: Int = resolveProperty("processors.thread-pool-size") { it.toInt() }.orElseThrow()
 
         val redisHost: String = resolveProperty("redis.host").orElseThrow()
         val redisPort: Int = resolveProperty("redis.port") { it.toInt() }.orElseThrow()
-        val redisPollingChannelName: String = resolveProperty("redis.polling-channel-name").orElseThrow()
-        context.registry.bind("stringRedisSerializer", StringRedisSerializer())
 
-        from("spring-redis://$redisHost:$redisPort?command=SUBSCRIBE&channels=$redisPollingChannelName&serializer=#stringRedisSerializer")
+        context.registry.bind("stringRedisSerializer", StringRedisSerializer())
+        from("spring-redis://$redisHost:$redisPort?command=SUBSCRIBE&channels=${DataFlowConstants.GRAB_DATA_COMMAND_CHANNEL_NAME.field}&serializer=#stringRedisSerializer")
+            .onCompletion().onCompleteOnly().to("direct:end-csv-processing").end()
             .filter(ISINProcessor.isValidIntervalHeaderValues())
         .process(ISINProcessor.setISINIntervalHeaderValues())
         .to("https://www.bamosz.hu/egyes-alapok-kivalasztasa")
             .convertBodyTo(String::class.java, "UTF-8")
         .process(ISINProcessor.extractISINList())
             .split().tokenize("\n", isinGroupSize)
-            // TODO: Apparently the parallel processing is not working when we are using a bigger time period
-            // .parallelProcessing().executorService(Executors.newFixedThreadPool(threadPoolSize))
             .convertBodyTo(String::class.java, "UTF-8")
         .process(ISINProcessor.setISINListHeaderValue())
             .setHeader("Content-Type", constant("application/x-www-form-urlencoded"))
@@ -62,12 +62,9 @@ class InvestmentFundsRoutes : RouteBuilder() {
                 escape = '\\'
             })
             .log(LoggingLevel.INFO, "Vertically split CSV files according to ISIN numbers.")
-            //.end().to("direct:end-csv-processing")
+
         .process(CsvProcessor.splitVertically())
-                .split().body()
-                // TODO: Apparently the parallel processing is not working when we are using a bigger time period
-                //.parallelProcessing()
-                //.executorService(Executors.newFixedThreadPool(threadPoolSize))
+            .split().body()
             .log(LoggingLevel.INFO, "Horizontally segment CSV chunks based on fund and rates data.")
         .process(CsvProcessor.splitHorizontallyAndSend())
             .end()
@@ -91,7 +88,9 @@ class InvestmentFundsRoutes : RouteBuilder() {
             .end()
 
         from("direct:end-csv-processing")
-            .log("All split processes are finished")
+            .filter(ISINProcessor.isValidIntervalHeaderValues())
+            .log("All CSV processed for (\${header.$START_DATE_HEADER_NAME}-\${header.$END_DATE_HEADER_NAME})")
+            .process(RedisProcessor.saveMetaData())
     }
 
     private fun resolveProperty(propertyName: String): Optional<String> =
