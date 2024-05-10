@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.*
 @RestController
 class RatesController @Autowired constructor(private val ratesApi: RatesAPI) {
 
+    data class RatesFilter(val from: String, val to: String)
+
     @GetMapping("/rates/{isin}")
     fun ratesByIsin(@PathVariable isin: String): Iterable<Rate> {
         return ratesApi.findAllRatesByISIN(isin)
@@ -16,5 +18,4 @@ class RatesController @Autowired constructor(private val ratesApi: RatesAPI) {
         return ratesApi.findAllRatesByISINBetween(isin, filter)
     }
 
-    data class RatesFilter(val from: String, val to: String)
 }

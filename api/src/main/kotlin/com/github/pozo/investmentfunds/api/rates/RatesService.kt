@@ -7,10 +7,6 @@ import org.springframework.stereotype.Service
 @Service
 class RatesService() : RatesAPI {
 
-    private val START_YEAR = 1990
-
-    private val DATE_FORMAT = "yyyy/MM/dd"
-
     override fun findAllRatesByISIN(isin: String): List<Rate> {
         RedisService.jedis.pipelined().use { pipeline ->
             val results = RedisService.jedis.zrange("rate:keys#$isin", 0, -1).toList()
@@ -21,16 +17,8 @@ class RatesService() : RatesAPI {
     }
 
     override fun findAllRatesByISINBetween(isin: String, filter: RatesController.RatesFilter): List<Rate> {
-        val fromKey = RedisHashKey.calculateScore(
-            DATE_FORMAT,
-            START_YEAR,
-            filter.from
-        )
-        val toKey = RedisHashKey.calculateScore(
-            DATE_FORMAT,
-            START_YEAR,
-            filter.to
-        )
+        val fromKey = RedisHashKey.calculateScore(filter.from)
+        val toKey = RedisHashKey.calculateScore(filter.to)
 
         RedisService.jedis.pipelined().use { pipeline ->
             val results = RedisService.jedis.zrangeByScore("rate:keys#$isin", fromKey, toKey).toList()

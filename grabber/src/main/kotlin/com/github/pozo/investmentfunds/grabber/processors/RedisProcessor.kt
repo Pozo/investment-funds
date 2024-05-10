@@ -11,8 +11,6 @@ import redis.clients.jedis.JedisPooled
 
 object RedisProcessor {
 
-    private const val DATE_FORMAT = "yyyy/MM/dd"
-
     private val jedis = JedisPooled("localhost", 6379)
 
     fun saveMetaData(): (exchange: Exchange) -> Unit = { exchange ->
@@ -54,11 +52,7 @@ object RedisProcessor {
                     pipeline.hset(rateKey, keyValuePairs)
                     pipeline.zadd(
                         "rate:keys#$isin",
-                        RedisHashKey.calculateScore(
-                            DATE_FORMAT,
-                            DataFlowConstants.START_YEAR.field.toInt(),
-                            entry[header.indexOf(RateHeaders.DATE.field)]
-                        ),
+                        RedisHashKey.calculateScore(entry[header.indexOf(RateHeaders.DATE.field)]),
                         rateKey
                     )
                 }

@@ -7,7 +7,7 @@ enum class DataFlowConstants(val field: String) {
     GRAB_DATA_COMMAND_CHANNEL_NAME("grab-data"),
     GRAB_DATA_COMMAND_DATE_FORMAT("yyyy.MM.dd"),
     GRAB_DATA_COMMAND_SEPARATOR(","),
-
     GRAB_DATA_LATEST_DATE_KEY("meta#last-successful-grabbing-ending-date"),
 
+    RATES_KEY_DATE_FORMAT("yyyy/MM/dd")
 }
