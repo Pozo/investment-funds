@@ -54,6 +54,10 @@ resource "aws_iam_policy_attachment" "ecs_instance_policy_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
 }
 
+resource "aws_iam_role_policy_attachment" "ssm_role_policy_attachment" {
+  role       = aws_iam_role.investmentfunds-role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
 
 resource "aws_iam_instance_profile" "investmentfunds_profile" {
   name = "investmentfunds-profile"
@@ -74,15 +78,6 @@ resource "aws_security_group" "investmentfunds-external-alb-sg" {
     protocol    = "-1"
     self        = "false"
     to_port     = "0"
-  }
-
-  ingress {
-    cidr_blocks      = ["0.0.0.0/0"]
-    from_port        = 22
-    ipv6_cidr_blocks = ["::/0"]
-    protocol         = "tcp"
-    self             = "false"
-    to_port          = 22
   }
 
   ingress {
@@ -128,6 +123,10 @@ resource "aws_route_table" "investmentfunds_route_table" {
   vpc_id = aws_vpc.investmentfunds-vpc.id
 
   # Define other routes if needed
+  #   route {
+  #     cidr_block = "0.0.0.0/0"
+  #     nat_gateway_id = aws_nat_gateway.nat-a.id
+  #   }
 }
 
 resource "aws_route" "internet_route" {
@@ -147,6 +146,24 @@ resource "aws_subnet" "investmentfunds-subnet-b" {
   cidr_block        = "10.0.2.0/24"
   availability_zone = "eu-central-1b"
 }
+#
+# resource "aws_eip" "elastic-ip-a" {
+#   vpc = true
+# }
+#
+# resource "aws_eip" "elastic-ip-b" {
+#   vpc = true
+# }
+#
+# resource "aws_nat_gateway" "nat-a" {
+#   allocation_id = aws_eip.elastic-ip-a.id
+#   subnet_id     = aws_subnet.investmentfunds-subnet-a.id
+# }
+#
+# resource "aws_nat_gateway" "nat-b" {
+#   allocation_id = aws_eip.elastic-ip-b.id
+#   subnet_id     = aws_subnet.investmentfunds-subnet-b.id
+# }
 
 resource "aws_route_table_association" "private_subnet_association-a" {
   subnet_id      = aws_subnet.investmentfunds-subnet-a.id
@@ -169,7 +186,7 @@ resource "aws_lb" "investmentfunds-external-alb" {
 }
 
 resource "aws_lb_target_group" "investmentfunds_http_target_group" {
-  name        = "investmentfunds-target-group"
+  name        = "investmentfunds-http-tg"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = aws_vpc.investmentfunds-vpc.id
@@ -186,7 +203,7 @@ resource "aws_lb_target_group" "investmentfunds_http_target_group" {
   }
 }
 
-resource "aws_lb_target_group_attachment" "managers-attachment" {
+resource "aws_lb_target_group_attachment" "http-attachment" {
   target_group_arn = aws_lb_target_group.investmentfunds_http_target_group.arn
   target_id        = aws_instance.investmentfunds_ecs_instance.id
 }
@@ -197,20 +214,60 @@ resource "aws_lb_listener" "http_listener" {
   protocol          = "HTTP"
 
   default_action {
+    type = "redirect"
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+resource "aws_lb_listener" "https_listener" {
+  load_balancer_arn = aws_lb.investmentfunds-external-alb.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS-1-2-Ext-2018-06"
+  certificate_arn   = var.certificate-arn
+
+  default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.investmentfunds_http_target_group.arn
+  }
+}
 
+resource "aws_route53_record" "alias_route53_record" {
+  zone_id = var.zone-id
+  name = var.domain
+  type = "A"
+
+  alias {
+    name                   = aws_lb.investmentfunds-external-alb.dns_name
+    zone_id                = aws_lb.investmentfunds-external-alb.zone_id
+    evaluate_target_health = true
+  }
+}
+
+resource "aws_route53_record" "alias_route53_record_www" {
+  zone_id = var.zone-id
+  name = "www.${var.domain}" # Replace with your name/domain/subdomain
+  type = "A"
+
+  alias {
+    name                   = aws_lb.investmentfunds-external-alb.dns_name
+    zone_id                = aws_lb.investmentfunds-external-alb.zone_id
+    evaluate_target_health = true
   }
 }
 
 resource "aws_security_group" "investmentfunds-sg" {
   name        = "investmentfunds-sg"
-  description = "Allow SSH access"
+  description = "Allow HTTP and HTTPS access"
   vpc_id      = aws_vpc.investmentfunds-vpc.id
 
   ingress {
-    from_port   = 22
-    to_port     = 22
+    from_port   = 443
+    to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -235,13 +292,13 @@ resource "aws_security_group" "investmentfunds-sg" {
 
 
 resource "aws_instance" "investmentfunds_ecs_instance" {
-  ami = "ami-0f667aa009598db39" // amzn-ami-2018.03.20240319-amazon-ecs-optimized
+  // amzn-ami-2018.03.20240319-amazon-ecs-optimized
+  ami                         = "ami-0f667aa009598db39"
   instance_type               = "t2.micro"
   iam_instance_profile        = aws_iam_instance_profile.investmentfunds_profile.name
   subnet_id                   = aws_subnet.investmentfunds-subnet-a.id
   security_groups             = [aws_security_group.investmentfunds-sg.id]
   associate_public_ip_address = true
-  key_name                    = "zoltan-aws"
   user_data                   = templatefile("init.sh.tfpl", {
     ecs_cluster_name = aws_ecs_cluster.investment_funds_cluster.name
   })
