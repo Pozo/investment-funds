@@ -11,5 +11,5 @@ object RedisService {
         minIdle = 10
     }
 
-    val jedis = JedisPooled(poolConfig, "localhost", 6379)
+    val jedis = JedisPooled(poolConfig, "investmentfunds-redis", 6379)
 }

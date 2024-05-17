@@ -10,3 +10,6 @@ variable "zone-id" {
 variable "certificate-arn" {
   type = string
 }
+variable "repository" {
+  type = string
+}

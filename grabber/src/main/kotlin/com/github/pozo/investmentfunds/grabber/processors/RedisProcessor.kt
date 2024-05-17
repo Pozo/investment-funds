@@ -11,7 +11,7 @@ import redis.clients.jedis.JedisPooled
 
 object RedisProcessor {
 
-    private val jedis = JedisPooled("localhost", 6379)
+    private val jedis = JedisPooled("investmentfunds-redis", 6379)
 
     fun saveMetaData(): (exchange: Exchange) -> Unit = { exchange ->
         val periodEnd = exchange.message.getHeader(END_DATE_HEADER_NAME, String::class.java)
