@@ -1,0 +1,70 @@
+name: Deploy investment funds grabber to ECS
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    paths:
+      - grabber/**
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    # These permissions are needed to interact with GitHub's OIDC Token endpoint.
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials for build and push
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_DOCKER_BUILD_AND_PUSH_ROLE }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push grabber Docker image
+        id: build-and-push-grabber-docker-image
+        uses: docker/build-push-action@v5
+        with:
+          file: Dockerfile-grabber
+          push: true
+          tags: |
+            ${{ secrets.AWS_ECR_REPOSITORY }}/investmentfunds/grabber:latest
+            ${{ secrets.AWS_ECR_REPOSITORY }}/investmentfunds/grabber:${{ github.sha }}
+
+      - name: Configure AWS credentials for deploy
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_ECS_DEPLOY_ROLE }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Download task definition
+        id: download-task-definition
+        run: |
+          aws ecs describe-task-definition --task-definition ${{ vars.AWS_ECS_TASK_DEFINITION_FAMILY }} --query taskDefinition > task-definition.json
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: ecs-render-task-definition
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ vars.AWS_ECS_GRABBER_CONTAINER_NAME }}
+          image: ${{ secrets.AWS_ECR_REPOSITORY }}/investmentfunds/grabber:${{ github.sha }}
+
+      - name: Deploy to Amazon ECS service
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.ecs-render-task-definition.outputs.task-definition }}
+          service: ${{ vars.AWS_ECS_GRABBER_SERVICE_NAME }}
+          cluster: ${{ vars.AWS_ECS_CLUSTER_NAME }}
