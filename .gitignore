@@ -7,5 +7,4 @@ isin-list
 target
 out
 .java-version
-terraform/.terragrunt-cache
-terraform-ecs/.terragrunt-cache
+*/.terragrunt-cache
