@@ -1,15 +1,6 @@
 resource "aws_ecs_cluster" "investment_funds_cluster" {
-  name = "investment-funds-cluster"
+  name = var.ecs_cluster_name
 
-}
-
-
-resource "aws_ecs_service" "nginx-demo" {
-  name            = "nginx-demo-service"
-  cluster         = aws_ecs_cluster.investment_funds_cluster.id
-  task_definition = aws_ecs_task_definition.nginx-demo.arn
-  desired_count   = 1
-  launch_type     = "EC2"
 }
 
 resource "aws_iam_role" "investmentfunds-role" {
@@ -65,17 +56,17 @@ resource "aws_iam_policy_attachment" "ecs_instance_policy_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-resource "aws_ecs_task_definition" "nginx-demo" {
+resource "aws_ecs_task_definition" "investment-funds" {
   family                = "service"
   network_mode          = "bridge"
   execution_role_arn    = aws_iam_role.investmentfunds-ecs-role.arn
   container_definitions = jsonencode([
     {
-      name         = "investmentfunds-api"
-      image        = "${var.repository}/investmentfunds/api"
-      cpu          = 1
-      memory       = 1372
-      essential    = true
+      name        = var.ecs_api_container_name
+      image       = "${var.ecr_repository}/investmentfunds/api"
+      cpu         = 1
+      memory      = 1372
+      essential   = true
       environment = [
         {
           name  = "JAVA_OPTS"
@@ -91,11 +82,11 @@ resource "aws_ecs_task_definition" "nginx-demo" {
       links = ["investmentfunds-redis"]
     },
     {
-      name         = "investmentfunds-grabber"
-      image        = "${var.repository}/investmentfunds/grabber"
-      cpu          = 1
-      memory       = 1536
-      essential    = true
+      name        = var.ecs_grabber_container_name
+      image       = "${var.ecr_repository}/investmentfunds/grabber"
+      cpu         = 1
+      memory      = 1536
+      essential   = true
       environment = [
         {
           name  = "JAVA_OPTS"
@@ -118,6 +109,16 @@ resource "aws_ecs_task_definition" "nginx-demo" {
       ]
     }
   ])
+}
+
+resource "aws_ecs_service" "investment-funds" {
+  name                               = var.ecs_service_name
+  cluster                            = aws_ecs_cluster.investment_funds_cluster.id
+  task_definition                    = aws_ecs_task_definition.investment-funds.arn
+  desired_count                      = 1
+  launch_type                        = "EC2"
+  deployment_minimum_healthy_percent = 0
+  deployment_maximum_percent         = 100
 }
 
 resource "aws_iam_instance_profile" "investmentfunds_profile" {
@@ -267,9 +268,9 @@ resource "aws_lb_listener" "https_listener" {
 }
 
 resource "aws_route53_record" "alias_route53_record" {
-  zone_id = var.zone-id
-  name = var.domain
-  type = "A"
+  zone_id = var.route53_zone_id
+  name    = var.route53_domain
+  type    = "A"
 
   alias {
     name                   = aws_lb.investmentfunds-external-alb.dns_name
@@ -279,9 +280,9 @@ resource "aws_route53_record" "alias_route53_record" {
 }
 
 resource "aws_route53_record" "alias_route53_record_www" {
-  zone_id = var.zone-id
-  name = "www.${var.domain}" # Replace with your name/domain/subdomain
-  type = "A"
+  zone_id = var.route53_zone_id
+  name = "www.${var.route53_domain}" # Replace with your name/domain/subdomain
+  type    = "A"
 
   alias {
     name                   = aws_lb.investmentfunds-external-alb.dns_name
@@ -319,16 +320,18 @@ resource "aws_security_group" "investmentfunds-sg" {
 
 resource "aws_instance" "investmentfunds_ecs_instance" {
   // amzn-ami-2018.03.20240319-amazon-ecs-optimized
-  ami                         = "ami-0f667aa009598db39"
-  instance_type               = "t2.medium"
-  iam_instance_profile        = aws_iam_instance_profile.investmentfunds_profile.name
-  subnet_id                   = aws_subnet.investmentfunds-subnet-a.id
-  security_groups             = [aws_security_group.investmentfunds-sg.id]
-  associate_public_ip_address = true
-  user_data                   = templatefile("init.sh.tfpl", {
+  ami                  = "ami-0f667aa009598db39"
+  instance_type        = "t2.medium"
+  iam_instance_profile = aws_iam_instance_profile.investmentfunds_profile.name
+  subnet_id            = aws_subnet.investmentfunds-subnet-a.id
+  security_groups      = [aws_security_group.investmentfunds-sg.id]
+  associate_public_ip_address = true // TODO NAT
+  user_data            = templatefile("init.sh.tfpl", {
     ecs_cluster_name = aws_ecs_cluster.investment_funds_cluster.name
   })
-
+  lifecycle {
+    ignore_changes = all
+  }
   tags = {
     Name = "investmentfunds"
   }
