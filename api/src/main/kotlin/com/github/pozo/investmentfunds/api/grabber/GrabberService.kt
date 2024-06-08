@@ -1,4 +1,4 @@
-package com.github.pozo.investmentfunds.api.internal
+package com.github.pozo.investmentfunds.api.grabber
 
 import com.github.pozo.investmentfunds.DataFlowConstants
 import com.github.pozo.investmentfunds.api.redis.RedisService
