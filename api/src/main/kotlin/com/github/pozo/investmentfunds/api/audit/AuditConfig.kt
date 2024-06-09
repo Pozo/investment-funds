@@ -17,6 +17,6 @@ open class AuditConfig : WebMvcConfigurer {
 
     override fun addInterceptors(registry: InterceptorRegistry) {
         // Register the audit interceptor to intercept all incoming requests
-        registry.addInterceptor(auditInterceptor)
+        // registry.addInterceptor(auditInterceptor)
     }
 }
