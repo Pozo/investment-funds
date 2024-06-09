@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.HandlerInterceptor
 import java.io.IOException
-import java.util.stream.Collectors
 
 
 /**
@@ -19,16 +18,7 @@ class AuditInterceptor : HandlerInterceptor {
 
     @Throws(IOException::class)
     override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
-        // Wrap the request to cache the body for multiple reads
-        val cachedRequest = CachedBodyHttpServletRequest(request)
-
-        // Extract and log request details
-        val requestURI = cachedRequest.requestURI
-        val method = cachedRequest.method
-        val params = getParameters(cachedRequest)
-        val body = getBody(cachedRequest)
-
-        logger.info("Request URL: $requestURI, Method: $method, Parameters: $params, Body: $body")
+        logger.info("Request URL: ${request.requestURI}, Method: ${request.method}, Parameters: ${getParameters(request)}")
 
         return true
     }
@@ -40,11 +30,4 @@ class AuditInterceptor : HandlerInterceptor {
         return request.parameterMap.entries.joinToString("&") { "${it.key}=${it.value.joinToString(",")}" }
     }
 
-    /**
-     * Reads the request body and converts it to a string.
-     */
-    @Throws(IOException::class)
-    private fun getBody(request: HttpServletRequest): String {
-        return request.reader.lines().collect(Collectors.joining(System.lineSeparator()))
-    }
 }
