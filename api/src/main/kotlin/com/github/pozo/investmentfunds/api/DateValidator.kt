@@ -1,20 +1,35 @@
 package com.github.pozo.investmentfunds.api
 
+import jakarta.validation.ConstraintValidator
+import jakarta.validation.ConstraintValidatorContext
 import java.text.ParseException
 import java.text.SimpleDateFormat
 
 
-object DateValidator {
+class DateValidator : ConstraintValidator<ValidDate, String> {
 
-    fun isValidDateFormat(dateStr: String, dateFormat: String): Boolean {
+    private var mandatory: Boolean = false
+
+    private lateinit var dateFormat: String
+
+    override fun initialize(constraintAnnotation: ValidDate) {
+        this.mandatory = constraintAnnotation.mandatory
+        this.dateFormat = constraintAnnotation.dateFormat
+    }
+
+    override fun isValid(value: String?, context: ConstraintValidatorContext?): Boolean {
+        if (value == null) {
+            return !mandatory
+
+        }
         val simpleDateFormat = SimpleDateFormat(dateFormat)
         simpleDateFormat.isLenient = false // Set lenient to false to enforce strict date parsing
 
         try {
-            simpleDateFormat.parse(dateStr) // Try parsing the date string
-            return true // If parsing succeeds, return true
+            simpleDateFormat.parse(value)
+            return true
         } catch (e: ParseException) {
-            return false // If parsing fails, return false
+            return false
         }
     }
 }

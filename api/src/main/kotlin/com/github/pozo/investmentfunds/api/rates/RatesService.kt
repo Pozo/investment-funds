@@ -17,8 +17,8 @@ class RatesService() : RatesAPI {
     }
 
     override fun findAllRatesByISINBetween(isin: String, filter: RatesController.RatesFilter): List<Rate> {
-        val fromKey = RedisHashKey.calculateScore(filter.from)
-        val toKey = RedisHashKey.calculateScore(filter.to)
+        val fromKey = RedisHashKey.calculateScore(filter.startDate)
+        val toKey = RedisHashKey.calculateScore(filter.endDate)
 
         RedisService.jedis.pipelined().use { pipeline ->
             val results = RedisService.jedis.zrangeByScore("rate:keys#$isin", fromKey, toKey).toList()

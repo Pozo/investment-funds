@@ -6,7 +6,6 @@ import com.github.pozo.investmentfunds.api.redis.RedisService
 import org.springframework.stereotype.Service
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.stream.Collectors
 
 @Service
 class SheetsService() : SheetsAPI {
@@ -24,7 +23,10 @@ class SheetsService() : SheetsAPI {
     // =GoogleFinance("WCLD", "price", TODAY()-100, 100)
     // =GoogleFinance("WCLD", "price", TODAY()-100, TODAY()-50)
 
-    override fun fundsData(isin: String, filter: SheetsController.FundsFilter): List<Map<String, String>> {
+    override fun getRatesByIsinAndFilter(
+        isin: String,
+        filter: SheetsController.RatesFilter
+    ): List<Map<String, String>> {
         val attribute = filter.attribute ?: "rate"
         val startDate = filter.startDate ?: format.format(Date())
         val endDate = filter.endDate ?: format.format(Date())
@@ -38,10 +40,12 @@ class SheetsService() : SheetsAPI {
             pipeline.sync()
 
             return results.stream()
-                .map { mapOf<String, String>(
+                .map {
+                    mapOf<String, String>(
                         "date" to it.first.get(),
                         attribute to it.second.get()
-                    ) }
+                    )
+                }
                 .toList()
         }
     }
