@@ -14,7 +14,7 @@ class GrabberController @Autowired constructor(private val grabberAPI: GrabberAP
 
     @PostMapping("/grabber/trigger")
     fun funds() {
-        logger.info("GET /grabber/trigger")
+        logger.info("POST /grabber/trigger")
         return grabberAPI.trigger()
     }
 
