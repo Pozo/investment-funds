@@ -5,6 +5,7 @@ import com.github.pozo.investmentfunds.api.ValidDate
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class SheetsController @Autowired constructor(private val sheetsAPI: SheetsAPI) {
+
+    private val logger = LoggerFactory.getLogger(SheetsController::class.java)
 
     data class RatesFilter(
         @field:Pattern(
@@ -33,6 +36,7 @@ class SheetsController @Autowired constructor(private val sheetsAPI: SheetsAPI) 
         @PathVariable @NotBlank @Pattern(regexp = ISIN_REGEX_PATTERN) isin: String,
         @Valid @RequestBody filter: RatesFilter
     ): Iterable<Map<String, String>> {
+        logger.info("POST /sheets/rates/$isin, filter=$filter")
         return sheetsAPI.getRatesByIsinAndFilter(isin, filter)
     }
 

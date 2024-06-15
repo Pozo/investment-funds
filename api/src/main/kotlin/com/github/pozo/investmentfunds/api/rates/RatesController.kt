@@ -3,11 +3,14 @@ package com.github.pozo.investmentfunds.api.rates
 import com.github.pozo.investmentfunds.ISIN.ISIN_REGEX_PATTERN
 import com.github.pozo.investmentfunds.api.ValidDate
 import jakarta.validation.constraints.Pattern
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
 @RestController
 class RatesController @Autowired constructor(private val ratesApi: RatesAPI) {
+
+    private val logger = LoggerFactory.getLogger(RatesController::class.java)
 
     data class RatesFilter(
         @field:ValidDate(dateFormat = "yyyy/MM/dd")
@@ -18,6 +21,7 @@ class RatesController @Autowired constructor(private val ratesApi: RatesAPI) {
 
     @GetMapping("/rates/{isin}")
     fun ratesByIsin(@PathVariable @Pattern(regexp = ISIN_REGEX_PATTERN) isin: String): Iterable<Rate> {
+        logger.info("GET /rates/$isin")
         return ratesApi.findAllRatesByISIN(isin)
     }
 
@@ -26,6 +30,7 @@ class RatesController @Autowired constructor(private val ratesApi: RatesAPI) {
         @PathVariable @Pattern(regexp = ISIN_REGEX_PATTERN) isin: String,
         @RequestBody filter: RatesFilter
     ): Iterable<Rate> {
+        logger.info("POST /rates/$isin, filter=$filter")
         return ratesApi.findAllRatesByISINBetween(isin, filter)
     }
 
