@@ -1,6 +1,7 @@
 package com.github.pozo.investmentfunds.api.sheets
 
 import com.github.pozo.investmentfunds.DataFlowConstants
+import com.github.pozo.investmentfunds.RateHeaders
 import com.github.pozo.investmentfunds.RedisHashKey
 import com.github.pozo.investmentfunds.api.redis.RedisService
 import org.springframework.stereotype.Service
@@ -27,7 +28,7 @@ class SheetsService() : SheetsAPI {
         isin: String,
         filter: SheetsController.RatesFilter
     ): List<Map<String, String>> {
-        val attribute = filter.attribute ?: "rate"
+        val attribute = filter.attribute ?: RateHeaders.RATE.name.lowercase()
         val startDate = filter.startDate ?: format.format(Date())
         val endDate = filter.endDate ?: format.format(Date())
 
@@ -36,13 +37,13 @@ class SheetsService() : SheetsAPI {
 
         RedisService.jedis.pipelined().use { pipeline ->
             val results = RedisService.jedis.zrangeByScore("rate:keys#$isin", fromKey, toKey).toList()
-                .map { pipeline.hget(it, "date") to pipeline.hget(it, attribute) }
+                .map { pipeline.hget(it, RateHeaders.DATE.name.lowercase()) to pipeline.hget(it, attribute) }
             pipeline.sync()
 
             return results.stream()
                 .map {
                     mapOf<String, String>(
-                        "date" to it.first.get(),
+                        RateHeaders.DATE.name.lowercase() to it.first.get(),
                         attribute to it.second.get()
                     )
                 }
