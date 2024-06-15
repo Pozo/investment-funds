@@ -29,26 +29,50 @@ class SheetsService() : SheetsAPI {
         filter: SheetsController.RatesFilter
     ): List<Map<String, String>> {
         val attribute = filter.attribute ?: RateHeaders.RATE.name.lowercase()
-        val startDate = filter.startDate ?: format.format(Date())
-        val endDate = filter.endDate ?: format.format(Date())
 
-        val fromKey = RedisHashKey.calculateScore(startDate)
-        val toKey = RedisHashKey.calculateScore(endDate)
+        if (filter.startDate != null) {
+            val fromKey = RedisHashKey.calculateScore(filter.startDate)
+            val toKey = if(filter.endDate != null) {
+                RedisHashKey.calculateScore(filter.endDate)
+            } else {
+                Double.MAX_VALUE
+            }
 
-        RedisService.jedis.pipelined().use { pipeline ->
-            val results = RedisService.jedis.zrangeByScore("rate:keys#$isin", fromKey, toKey).toList()
-                .map { pipeline.hget(it, RateHeaders.DATE.name.lowercase()) to pipeline.hget(it, attribute) }
-            pipeline.sync()
+            RedisService.jedis.pipelined().use { pipeline ->
+                val results = RedisService.jedis.zrangeByScore("rate:keys#$isin", fromKey, toKey).toList()
+                    .map { pipeline.hget(it, RateHeaders.DATE.name.lowercase()) to pipeline.hget(it, attribute) }
+                pipeline.sync()
 
-            return results.stream()
-                .map {
-                    mapOf<String, String>(
-                        RateHeaders.DATE.name.lowercase() to it.first.get(),
-                        attribute to it.second.get()
-                    )
-                }
-                .toList()
+                return results.stream()
+                    .map {
+                        mapOf<String, String>(
+                            RateHeaders.DATE.name.lowercase() to it.first.get(),
+                            attribute to it.second.get()
+                        )
+                    }
+                    .toList()
+            }
         }
+        if (filter.endDate == null) {
+            // return only latest entry
+            RedisService.jedis.pipelined().use { pipeline ->
+                val results =
+                    RedisService.jedis.zrevrangeByScore("rate:keys#$isin", Double.MAX_VALUE, Double.MIN_VALUE, 0, 1)
+                        .toList()
+                        .map { pipeline.hget(it, RateHeaders.DATE.name.lowercase()) to pipeline.hget(it, attribute) }
+                pipeline.sync()
+
+                return results.stream()
+                    .map {
+                        mapOf<String, String>(
+                            RateHeaders.DATE.name.lowercase() to it.first.get(),
+                            attribute to it.second.get()
+                        )
+                    }
+                    .toList()
+            }
+        }
+        return emptyList()
     }
 
 
