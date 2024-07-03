@@ -34,18 +34,6 @@ resource "github_actions_variable" "aws_ecs_task_definition_family" {
   value         = aws_ecs_task_definition.investment-funds.family
 }
 
-resource "github_actions_variable" "aws_ecs_grabber_service_name" {
-  repository    = var.github_repository
-  variable_name = "AWS_ECS_GRABBER_SERVICE_NAME"
-  value         = aws_ecs_service.investment-funds.name
-}
-
-resource "github_actions_variable" "aws_ecs_grabber_container_name" {
-  repository    = var.github_repository
-  variable_name = "AWS_ECS_GRABBER_CONTAINER_NAME"
-  value         = var.ecs_grabber_container_name
-}
-
 resource "github_actions_variable" "aws_ecs_api_service_name" {
   repository    = var.github_repository
   variable_name = "AWS_ECS_API_SERVICE_NAME"

@@ -1,6 +1,6 @@
 const BASE_API_URL = 'https://arrabona-software.solutions';
 
-function ISIN(isin, attribute = 'rate', startDate = null, endDate = null) {
+function FUND_RATE_LOOKUP(isin, attribute = 'rate', startDate = null, endDate = null) {
     var apiUrl = `${BASE_API_URL}/sheets/rates/${isin}`;
     var dataToPost = {};
 
@@ -35,4 +35,8 @@ function ISIN(isin, attribute = 'rate', startDate = null, endDate = null) {
 
     Logger.log(reducedData);
     return reducedData;
+}
+
+function FUND_LOOKUP(attribute = 'name', value = null) {
+
 }

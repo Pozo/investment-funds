@@ -11,12 +11,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: Build grabber Docker image
-        uses: docker/build-push-action@v5
-        with:
-          file: Dockerfile-api
-
       - name: Build api Docker image
         uses: docker/build-push-action@v5
-        with:
-          file: Dockerfile-grabber

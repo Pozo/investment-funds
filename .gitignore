@@ -1,5 +1,6 @@
 isin-list
 /build/
+notes
 .idea/
 *.iml
 *.mwb.bak
@@ -8,3 +9,4 @@ target
 out
 .java-version
 */.terragrunt-cache
+*/.clasp.json

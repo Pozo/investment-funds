@@ -46,8 +46,7 @@ resource "aws_iam_policy" "github_build_actions_policy" {
           "ecr:UploadLayerPart",
         ]
         Resource = [
-          aws_ecr_repository.investmentfunds-api.arn,
-          aws_ecr_repository.investmentfunds-grabber.arn
+          aws_ecr_repository.investmentfunds-api.arn
         ]
       },
       {

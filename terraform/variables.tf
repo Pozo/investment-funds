@@ -25,9 +25,6 @@ variable "ecs_service_name" {
 variable "ecs_api_container_name" {
   type = string
 }
-variable "ecs_grabber_container_name" {
-  type = string
-}
 variable "github_token" {
   type = string
 }

@@ -82,20 +82,6 @@ resource "aws_ecs_task_definition" "investment-funds" {
       links = ["investmentfunds-redis"]
     },
     {
-      name        = var.ecs_grabber_container_name
-      image       = "${var.ecr_repository}/investmentfunds/grabber"
-      cpu         = 1
-      memory      = 1536
-      essential   = true
-      environment = [
-        {
-          name  = "JAVA_OPTS"
-          value = "-Xmx1536m -Xms1536m"
-        }
-      ],
-      links = ["investmentfunds-redis"]
-    },
-    {
       name         = "investmentfunds-redis"
       image        = "redis"
       cpu          = 1
