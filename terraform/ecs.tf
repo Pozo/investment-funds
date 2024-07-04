@@ -64,13 +64,13 @@ resource "aws_ecs_task_definition" "investment-funds" {
     {
       name        = var.ecs_api_container_name
       image       = "${var.ecr_repository}/investmentfunds/api"
-      cpu         = 1
-      memory      = 1372
+      cpu         = 1024
+      memory      = 2622
       essential   = true
       environment = [
         {
           name  = "JAVA_OPTS"
-          value = "-Xmx1536m -Xms1536m"
+          value = "-Xmx2620m -Xms2620m"
         }
       ],
       portMappings = [
@@ -84,8 +84,8 @@ resource "aws_ecs_task_definition" "investment-funds" {
     {
       name         = "investmentfunds-redis"
       image        = "redis"
-      cpu          = 1
-      memory       = 1024
+      cpu          = 1024
+      memory       = 1310
       essential    = true
       portMappings = [
         {
