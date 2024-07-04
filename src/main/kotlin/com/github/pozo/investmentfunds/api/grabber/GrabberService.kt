@@ -21,11 +21,7 @@ class GrabberService constructor(
 
     private val format = SimpleDateFormat(DataFlowConstants.GRAB_DATA_COMMAND_DATE_FORMAT.field)
 
-    @Scheduled(
-        timeUnit = TimeUnit.HOURS,
-        fixedRate = 1,
-        initialDelay = 1
-    )
+    @Scheduled(cron = "0 * * * *")
     override fun trigger() {
         val latestEndDate = RedisService.jedis.get(DataFlowConstants.GRAB_DATA_LATEST_DATE_KEY.field)
 
