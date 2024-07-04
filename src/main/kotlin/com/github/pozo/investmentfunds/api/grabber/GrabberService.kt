@@ -32,10 +32,10 @@ class GrabberService constructor(
         logger.info("Initiating CSV retrieval mechanism. The last trigger date was $latestEndDate.")
 
         if (latestEndDate == null || latestEndDate.isEmpty()) {
-            logger.info("Retrieving data from '${DataFlowConstants.START_YEAR_DATE}'")
+            logger.info("Retrieving data from '${DataFlowConstants.START_YEAR_DATE.field}'")
             producerTemplate.sendBody(
                 "direct:grab-data",
-                "${DataFlowConstants.START_YEAR_DATE}${DataFlowConstants.GRAB_DATA_COMMAND_SEPARATOR.field}${format.format(Date())}"
+                "${DataFlowConstants.START_YEAR_DATE.field}${DataFlowConstants.GRAB_DATA_COMMAND_SEPARATOR.field}${format.format(Date())}"
             )
         } else {
             logger.info("Retrieving data from '$latestEndDate'")
