@@ -4,6 +4,7 @@ import com.github.pozo.investmentfunds.api.grabber.InvestmentFundsRoutes.Compani
 import com.github.pozo.investmentfunds.api.grabber.InvestmentFundsRoutes.Companion.RATE_DATA_ROUTE_NAME
 import com.github.pozo.investmentfunds.domain.FundHeaders
 import org.apache.camel.Exchange
+import org.slf4j.LoggerFactory
 import java.util.stream.Collectors
 import java.util.stream.IntStream
 
@@ -11,6 +12,8 @@ typealias VerticalPiece = MutableList<CsvProcessor.DataRow>
 typealias CSVLine = List<String>
 
 object CsvProcessor {
+
+    private val logger = LoggerFactory.getLogger(CsvProcessor::class.java)
 
     const val ISIN_HEADER_NAME = "isin"
 
@@ -26,6 +29,8 @@ object CsvProcessor {
         val csvLines = csvLinesWithMetaRow.drop(1) // skipping meta data row
         val firstHeaderLine = csvLines.first()
         val entries = mutableMapOf<Pair<Int, Int>, VerticalPiece>()
+
+        logger.info("The CSV contains '${entries.size}' number of entries, and '${firstHeaderLine.size}' header columns")
 
         val verticalIndexes: MutableList<Int> =
             IntStream.range(1, firstHeaderLine.size) // skipping first "label" column
