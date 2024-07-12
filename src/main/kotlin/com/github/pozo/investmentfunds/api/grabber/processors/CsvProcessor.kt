@@ -30,7 +30,7 @@ object CsvProcessor {
         val firstHeaderLine = csvLines.first()
         val entries = mutableMapOf<Pair<Int, Int>, VerticalPiece>()
 
-        logger.info("The CSV contains '${entries.size}' number of entries, and '${firstHeaderLine.size}' header columns")
+        logger.info("The CSV contains '${csvLines.size}' number of entries, and '${firstHeaderLine.size}' header columns")
 
         val verticalIndexes: MutableList<Int> =
             IntStream.range(1, firstHeaderLine.size) // skipping first "label" column
