@@ -2,6 +2,7 @@ package com.github.pozo.investmentfunds.api.grabber.processors
 
 import com.github.pozo.investmentfunds.api.grabber.InvestmentFundsRoutes.Companion.FUND_DATA_ROUTE_NAME
 import com.github.pozo.investmentfunds.api.grabber.InvestmentFundsRoutes.Companion.RATE_DATA_ROUTE_NAME
+import com.github.pozo.investmentfunds.api.grabber.processors.ISINProcessor.ISIN_LIST_HEADER_NAME
 import com.github.pozo.investmentfunds.domain.FundHeaders
 import org.apache.camel.Exchange
 import org.slf4j.LoggerFactory
@@ -30,7 +31,7 @@ object CsvProcessor {
         val firstHeaderLine = csvLines.first()
         val entries = mutableMapOf<Pair<Int, Int>, VerticalPiece>()
 
-        logger.info("The CSV contains '${csvLines.size}' number of entries, and '${firstHeaderLine.size}' header columns")
+        logger.info("'${exchange.`in`.headers[ISIN_LIST_HEADER_NAME]}' The CSV contains '${csvLinesWithMetaRow.size}' number of lines, and '${firstHeaderLine.size}' number of columns")
 
         val verticalIndexes: MutableList<Int> =
             IntStream.range(1, firstHeaderLine.size) // skipping first "label" column
@@ -80,6 +81,9 @@ object CsvProcessor {
         }
         val isin = fundData[fundHeaders.indexOf(FundHeaders.ISIN.field)]
         val sanitizedIsin = Regex("\\HU[0-9]{9,10}\\b").find(isin)?.value ?: isin
+
+        logger.info("'$isin' The CSV chunk contains '${fundHeaders.size}' number of fund headers, and '${fundData.size}' number of fund data")
+        logger.info("'$isin' The CSV chunk contains '${rateHeaders.size}' number of rate headers, and '${rateData.size}' number of rate data")
 
         exchange.context.createProducerTemplate()
             .sendBodyAndHeader(

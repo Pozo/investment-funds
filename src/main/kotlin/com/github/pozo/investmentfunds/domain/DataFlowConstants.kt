@@ -4,9 +4,6 @@ enum class DataFlowConstants(val field: String) {
     START_YEAR("1992"),// there is no data before this date
     START_YEAR_DATE("1992.01.01"),
 
-    GRAB_DATA_COMMAND_DATE_FORMAT("yyyy.MM.dd"),
-    GRAB_DATA_COMMAND_SEPARATOR(","),
-    GRAB_DATA_LATEST_DATE_KEY("meta#last-successful-grabbing-ending-date"),
-
+    DOMAIN_DATE_FORMAT("yyyy.MM.dd"),
     RATES_KEY_DATE_FORMAT("yyyy/MM/dd")
 }
