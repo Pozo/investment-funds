@@ -10,10 +10,13 @@ import com.github.pozo.investmentfunds.api.grabber.processors.RedisProcessor
 import org.apache.camel.LoggingLevel
 import org.apache.camel.builder.RouteBuilder
 import org.apache.camel.model.dataformat.CsvDataFormat
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
 class InvestmentFundsRoutes : RouteBuilder() {
+
+    private val logger = LoggerFactory.getLogger(InvestmentFundsRoutes::class.java)
 
     companion object {
         const val FUND_DATA_ROUTE_NAME = "direct:fund-data"
@@ -43,7 +46,7 @@ class InvestmentFundsRoutes : RouteBuilder() {
                         "&sortDirection=dec" +
                         "&separator=vesszo"
             )
-            .log(LoggingLevel.INFO, "'\${header.$ISIN_LIST_HEADER_NAME}' Downloading CSV file for the interval '\${header.$START_DATE_HEADER_NAME}'-'\${header.$END_DATE_HEADER_NAME}'")
+            .log(LoggingLevel.INFO, logger, "'\${header.$ISIN_LIST_HEADER_NAME}' Downloading CSV file for the interval '\${header.$START_DATE_HEADER_NAME}'-'\${header.$END_DATE_HEADER_NAME}'")
         .to("https://www.bamosz.hu/bamosz-public-letoltes-portlet/data.download")
             .convertBodyTo(String::class.java, "ISO-8859-2")
             .convertBodyTo(String::class.java, "UTF-8")
@@ -64,7 +67,7 @@ class InvestmentFundsRoutes : RouteBuilder() {
         .process(RedisProcessor.saveFundData())
             //.log(LoggingLevel.INFO, "Fund data processed for '\${header.$ISIN_HEADER_NAME}'")
             .doCatch(Exception::class.java)
-            .log(LoggingLevel.ERROR, "An error occurred during the processing : \${exception.message}")
+            .log(LoggingLevel.ERROR, logger, "An error occurred during the processing : \${exception.message}")
             .transform().simple("\${exception.message}")
             .end()
 
@@ -73,12 +76,12 @@ class InvestmentFundsRoutes : RouteBuilder() {
         .process(RedisProcessor.saveRateData())
             //.log(LoggingLevel.INFO, "Rate data processed for '\${header.$ISIN_HEADER_NAME}'")
             .doCatch(Exception::class.java)
-            .log(LoggingLevel.ERROR, "An error occurred during the processing : \${exception.message}")
+            .log(LoggingLevel.ERROR, logger, "An error occurred during the processing : \${exception.message}")
             .transform().simple("\${exception.message}")
             .end()
 
         from("direct:end-csv-processing").routeId("end-csv-processing")
             .filter { exchange -> exchange.message.headers[START_DATE_HEADER_NAME] != null && exchange.message.headers[END_DATE_HEADER_NAME] != null }
-            .log("All CSV processed for (\${header.$START_DATE_HEADER_NAME}-\${header.$END_DATE_HEADER_NAME})")
+            .log(LoggingLevel.INFO, logger, "All CSV processed for (\${header.$START_DATE_HEADER_NAME}-\${header.$END_DATE_HEADER_NAME})")
     }
 }
