@@ -1,4 +1,4 @@
-package com.github.pozo.investmentfunds.api
+package com.github.pozo.investmentfunds.api.validation
 
 import jakarta.validation.Constraint
 import jakarta.validation.Payload

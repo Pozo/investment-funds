@@ -1,6 +1,6 @@
 package com.github.pozo.investmentfunds.api.sheets
 
-import com.github.pozo.investmentfunds.api.ValidDate
+import com.github.pozo.investmentfunds.api.validation.ValidDate
 import com.github.pozo.investmentfunds.domain.ISIN.ISIN_REGEX_PATTERN
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
