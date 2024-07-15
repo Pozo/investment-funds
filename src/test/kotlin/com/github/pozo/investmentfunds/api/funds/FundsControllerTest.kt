@@ -1,10 +1,12 @@
 package com.github.pozo.investmentfunds.api.funds
 
+import com.github.pozo.investmentfunds.api.SecurityConfiguration
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -14,6 +16,7 @@ import java.util.*
 
 
 @WebMvcTest(FundsController::class)
+@Import(SecurityConfiguration::class) // https://stackoverflow.com/questions/45116833/springboot-webmvctest-security-issue
 internal class FundsControllerTest(@Autowired val mockMvc: MockMvc) {
 
     @MockkBean

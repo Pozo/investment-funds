@@ -1,5 +1,6 @@
 package com.github.pozo.investmentfunds.api.sheets
 
+import com.github.pozo.investmentfunds.api.SecurityConfiguration
 import com.github.pozo.investmentfunds.api.rates.Rate
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
@@ -8,12 +9,14 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @WebMvcTest(SheetsController::class)
+@Import(SecurityConfiguration::class) // https://stackoverflow.com/questions/45116833/springboot-webmvctest-security-issue
 class SheetsControllerTest(@Autowired val mockMvc: MockMvc) {
 
     @MockkBean
