@@ -60,6 +60,10 @@ resource "aws_ecs_task_definition" "investment-funds" {
   family                = "service"
   network_mode          = "bridge"
   execution_role_arn    = aws_iam_role.investmentfunds-ecs-role.arn
+  volume {
+    name      = "application-logs"
+    host_path = "/var/log/investment-funds"
+  }
   container_definitions = jsonencode([
     {
       name        = var.ecs_api_container_name
@@ -79,6 +83,12 @@ resource "aws_ecs_task_definition" "investment-funds" {
           containerPort = 8080
         }
       ],
+      mountPoints = [
+        {
+          sourceVolume  = "application-logs"
+          containerPath = "/var/log"
+        }
+      ]
       links = ["investmentfunds-redis"]
     },
     {

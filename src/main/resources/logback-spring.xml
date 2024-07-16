@@ -1,7 +1,7 @@
 <configuration>
     <!-- Define a file appender -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/investment-funds.log</file>
+        <file>/var/log/investment-funds.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- rollover daily -->
             <fileNamePattern>logs/investment-funds.%d{yyyy-MM-dd}.log</fileNamePattern>
