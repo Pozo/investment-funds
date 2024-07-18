@@ -18,7 +18,7 @@ public class SecurityConfiguration {
                 authorizeHttpRequests
                         .requestMatchers(HttpMethod.GET, "/").permitAll()
                         .requestMatchers(HttpMethod.GET, "/funds").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/funds/*").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/funds").permitAll()
                         .requestMatchers(HttpMethod.GET, "/rates/*").permitAll()
                         .requestMatchers(HttpMethod.POST, "/rates/*").permitAll()
                         .requestMatchers(HttpMethod.POST, "/sheets/rates/*").permitAll()

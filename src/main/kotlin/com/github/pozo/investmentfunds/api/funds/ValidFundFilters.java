@@ -9,10 +9,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Constraint(validatedBy = FundFilterValidator.class)
-@Target({ ElementType.PARAMETER })
+@Target({ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface FundFilters {
-    String message() default "Invalid parameters";
+public @interface ValidFundFilters {
+    String message() default "Invalid filter parameters";
+
     Class<?>[] groups() default {};
+
     Class<? extends Payload>[] payload() default {};
 }
