@@ -6,6 +6,6 @@ interface FundsAPI {
 
     fun findAllFunds(): List<Fund>
 
-    fun findAllFunds(field: String, value: String): List<Fund>
+    fun filterFunds(parameters: Map<String, String>): List<Fund>
 
 }

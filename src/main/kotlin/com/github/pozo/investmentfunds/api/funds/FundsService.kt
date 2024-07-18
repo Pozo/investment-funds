@@ -16,12 +16,12 @@ class FundsService() : FundsAPI {
         }
     }
 
-    override fun findAllFunds(field: String, value: String): List<Fund> {
-        val fundKeys: MutableList<Pair<String, Response<String>>> = RedisService.jedis.pipelined().use { pipeline ->
-            val hashKeys = RedisService.jedis.keys("fund#*")
-            val fundKeys = mutableListOf<Pair<String, Response<String>>>()
+    override fun filterFunds(parameters: Map<String, String>): List<Fund> {
+        val fundKeys: MutableList<Pair<String, Response<List<String>>>> = RedisService.jedis.pipelined().use { pipeline ->
+            val fundKeys = mutableListOf<Pair<String, Response<List<String>>>>()
 
-            hashKeys.map { fundKeys.add(it to pipeline.hget(it, field)) }
+            RedisService.jedis.keys("fund#*")
+                .map { fundKeys.add(it to pipeline.hmget(it, *parameters.keys.toTypedArray())) }
 
             pipeline.sync()
             return@use fundKeys
@@ -29,7 +29,7 @@ class FundsService() : FundsAPI {
 
         RedisService.jedis.pipelined().use { pipeline ->
             val results = fundKeys
-                .filter { it.second.get().contains(value, true) }
+                .filter { parameters.toList() == parameters.keys.zip(it.second.get()) }
                 .map { pipeline.hgetAll(it.first) }
 
             pipeline.sync()
