@@ -1,20 +1,15 @@
-package com.github.pozo.investmentfunds.api.funds;
+package com.github.pozo.investmentfunds.api.funds
 
-import jakarta.validation.Constraint;
-import jakarta.validation.Payload;
+import com.github.pozo.investmentfunds.api.funds.FundFilterValidator
+import jakarta.validation.Constraint
+import jakarta.validation.Payload
+import kotlin.reflect.KClass
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-@Constraint(validatedBy = FundFilterValidator.class)
-@Target({ElementType.PARAMETER})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ValidFundFilters {
-    String message() default "Invalid filter parameters";
-
-    Class<?>[] groups() default {};
-
-    Class<? extends Payload>[] payload() default {};
-}
+@Constraint(validatedBy = [FundFilterValidator::class])
+@Target(AnnotationTarget.VALUE_PARAMETER)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class ValidFundFilters(
+    val message: String = "Invalid filter parameters",
+    val groups: Array<KClass<*>> = [],
+    val payload: Array<KClass<out Payload>> = []
+)
