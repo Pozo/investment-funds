@@ -1,6 +1,7 @@
 package com.github.pozo.investmentfunds.api.sheets
 
 import com.github.pozo.investmentfunds.api.SecurityConfiguration
+import com.github.pozo.investmentfunds.api.funds.FundsAPI
 import com.github.pozo.investmentfunds.api.rates.Rate
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
@@ -21,6 +22,9 @@ class SheetsControllerTest(@Autowired val mockMvc: MockMvc) {
 
     @MockkBean
     private lateinit var sheetsService: SheetsAPI
+
+    @MockkBean
+    private lateinit var fundsService: FundsAPI
 
     private val exampleFundsResponse = listOf(
         mapOf(
