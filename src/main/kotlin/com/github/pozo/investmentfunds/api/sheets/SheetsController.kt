@@ -1,5 +1,8 @@
 package com.github.pozo.investmentfunds.api.sheets
 
+import com.github.pozo.investmentfunds.api.funds.Fund
+import com.github.pozo.investmentfunds.api.funds.FundsAPI
+import com.github.pozo.investmentfunds.api.funds.ValidFundFilters
 import com.github.pozo.investmentfunds.api.validation.ValidDate
 import com.github.pozo.investmentfunds.domain.ISIN.ISIN_REGEX_PATTERN
 import jakarta.validation.Valid
@@ -13,7 +16,10 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class SheetsController @Autowired constructor(private val sheetsAPI: SheetsAPI) {
+class SheetsController @Autowired constructor(
+    private val fundsApi: FundsAPI,
+    private val sheetsAPI: SheetsAPI
+) {
 
     private val logger = LoggerFactory.getLogger(SheetsController::class.java)
 
@@ -40,5 +46,11 @@ class SheetsController @Autowired constructor(private val sheetsAPI: SheetsAPI) 
         return sheetsAPI.getRatesByIsinAndFilter(isin, filter)
     }
 
+    @PostMapping("/sheets/funds")
+    fun filterFunds(@Valid @RequestBody @ValidFundFilters filters: Map<String, String>): Iterable<Fund> {
+        logger.info("POST /sheets/funds, filters='$filters'")
+
+        return fundsApi.filterFunds(filters)
+    }
 
 }

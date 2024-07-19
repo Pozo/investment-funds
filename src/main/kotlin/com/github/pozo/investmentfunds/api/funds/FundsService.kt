@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service
 import redis.clients.jedis.Response
 
 @Service
-class FundsService() : FundsAPI {
+class FundsService : FundsAPI {
 
     override fun findAllFunds(): List<Fund> {
         RedisService.jedis.pipelined().use { pipeline ->

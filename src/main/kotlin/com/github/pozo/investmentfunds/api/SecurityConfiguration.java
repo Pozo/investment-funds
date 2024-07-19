@@ -22,6 +22,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/rates/*").permitAll()
                         .requestMatchers(HttpMethod.POST, "/rates/*").permitAll()
                         .requestMatchers(HttpMethod.POST, "/sheets/rates/*").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/sheets/funds").permitAll()
                         .anyRequest().denyAll()
         ).csrf(AbstractHttpConfigurer::disable); // https://stackoverflow.com/a/51088555
         return http.build();
