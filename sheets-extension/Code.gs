@@ -32,11 +32,37 @@ function FUND_RATE_LOOKUP(isin, attribute = 'rate', startDate = null, endDate = 
         }
         return [date, value];
     });
-
-    Logger.log(reducedData);
     return reducedData;
 }
 
-function FUND_LOOKUP(attribute = 'name', value = null) {
+function FUND_LOOKUP(manager = null, type = null, category = null, currency = null) {
+    var apiUrl = `${BASE_API_URL}/sheets/funds`;
+    var dataToPost = {};
 
+    if (manager) {
+        dataToPost.manager = manager;
+    }
+    if (type) {
+        dataToPost.type = type;
+    }
+    if (category) {
+        dataToPost.category = category;
+    }
+    if (currency) {
+        dataToPost.currency = currency;
+    }
+
+    var options = {
+        'method': 'post',
+        'contentType': 'application/json',
+        'payload': JSON.stringify(dataToPost)
+    };
+    var response = UrlFetchApp.fetch(apiUrl, options);
+
+    var responseData = JSON.parse(response.getContentText());
+
+    var reducedData = responseData.map(function(item) {
+        return [item['isin'], item['manager'], item['type'], item['category'], item['currency']];
+    });
+    return reducedData;
 }
