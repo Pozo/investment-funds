@@ -17,6 +17,9 @@ class FundsService : FundsAPI {
     }
 
     override fun filterFunds(parameters: Map<String, String>): List<Fund> {
+        if(parameters.isEmpty()){
+            return findAllFunds()
+        }
         val fundKeys: MutableList<Pair<String, Response<List<String>>>> = RedisService.jedis.pipelined().use { pipeline ->
             val fundKeys = mutableListOf<Pair<String, Response<List<String>>>>()
 
