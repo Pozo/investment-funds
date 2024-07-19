@@ -5,7 +5,7 @@ import com.github.pozo.investmentfunds.domain.RedisHashKey
 import org.springframework.stereotype.Service
 
 @Service
-class RatesService() : RatesAPI {
+class RatesService : RatesAPI {
 
     override fun findAllRatesByISIN(isin: String): List<Rate> {
         RedisService.jedis.pipelined().use { pipeline ->

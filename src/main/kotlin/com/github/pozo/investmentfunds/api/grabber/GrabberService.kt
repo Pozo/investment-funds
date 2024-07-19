@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service
 
 
 @Service
-class GrabberService constructor(
+class GrabberService(
     @Autowired val producerTemplate: ProducerTemplate
 ) : GrabberAPI {
 
