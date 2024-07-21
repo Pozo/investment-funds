@@ -17,16 +17,9 @@ class SheetsService : SheetsAPI {
         if(filter.endDate == null && filter.startDate == null && filter.attribute == null) {
             RedisService.jedis.pipelined().use { pipeline ->
                 val results = RedisService.jedis.zrange("rate:keys#$isin", 0, -1).toList()
-                    .map { pipeline.hget(it, RateHeaders.DATE.name.lowercase()) to pipeline.hget(it, attribute) }
+                    .map { pipeline.hgetAll(it) }
                 pipeline.sync()
-                return results.stream()
-                    .map {
-                        mapOf<String, String>(
-                            RateHeaders.DATE.name.lowercase() to it.first.get(),
-                            attribute to it.second.get()
-                        )
-                    }
-                    .toList()
+                return results.map { it.get()}
             }
         }
         if (filter.startDate != null) {
